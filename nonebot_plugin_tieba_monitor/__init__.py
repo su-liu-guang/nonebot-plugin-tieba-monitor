@@ -14,7 +14,11 @@ __plugin_meta__ = PluginMetadata(
     name="贴吧监控",
     description="监控指定贴吧的新帖子并发送到QQ群",
     usage="在.env文件中配置参数，插件会自动运行",
+    type="application",
+    homepage="https://github.com/su-liu-guang/nonebot-plugin-tieba-monitor",
     config=Config,
+    supported_adapters={"~onebot.v11"},
+
 )
 
 from .tieba import check_and_save_new_threads_and_notify
