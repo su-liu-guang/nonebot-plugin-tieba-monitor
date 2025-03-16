@@ -1,3 +1,24 @@
+Metadata-Version: 2.2
+Name: nonebot-plugin-tieba-monitor
+Version: 0.1.0
+Summary: NoneBot2 plugin for monitoring Tieba forums
+Author-email: su-liu-guang <wuhui0404@gmail.com>
+License: GNU AGPLv3
+Project-URL: Homepage, https://github.com/su-liu-guang/nonebot-plugin-tieba-monitor
+Project-URL: Bug Tracker, https://github.com/su-liu-guang/nonebot-plugin-tieba-monitor/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3
+Classifier: Operating System :: OS Independent
+Classifier: Framework :: Robot Framework :: Library
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: nonebot2>=2.1.0
+Requires-Dist: nonebot-adapter-onebot>=2.2.3
+Requires-Dist: nonebot-plugin-apscheduler>=0.3.0
+Requires-Dist: aiotieba>=1.4.0
+Requires-Dist: openai>=1.0.0
+
 # nonebot-plugin-tieba-monitor
 
 基于 [NoneBot2](https://nonebot.dev/) 的贴吧帖子监控插件，用于监控指定贴吧的新帖子并发送到 QQ 群。
@@ -8,8 +29,15 @@
 - 支持自定义检查时间间隔
 - 支持多群组通知
 - 支持 AI 内容分析与过滤（可选）
+- 高效的异步实现
 
 ## 安装
+
+### 使用 pip
+
+```bash
+pip install nonebot-plugin-tieba-monitor
+```
 
 ### 使用 nb-cli
 
@@ -84,6 +112,6 @@ tieba_ai_system_prompt="""你是一个帖子内容分析助手。分析以下内
 - 使用 `nonebot-plugin-apscheduler` 进行定时任务管理
 - 插件会将帖子数据保存在配置的输出目录中
 
+## 开源许可
 
-## 许可证
-本项目使用 [GNU AGPLv3](https://choosealicense.com/licenses/agpl-3.0/) 作为开源许可证。
+本项目采用 MIT 许可证
