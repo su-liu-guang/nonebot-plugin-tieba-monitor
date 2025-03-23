@@ -1,9 +1,14 @@
-from typing import Dict, List, Optional, Union, Any
-from nonebot import get_plugin_config
+from typing import Dict, List, Any
+from nonebot import get_plugin_config, require
 from nonebot.log import logger
-from pydantic import BaseModel, Field, validator
-import os
+from nonebot.compat import field_validator
+from pydantic import BaseModel, Field
+from nonebot_plugin_localstore import get_plugin_data
+from pathlib import Path
 
+# 声明依赖
+require("nonebot_plugin_localstore")
+from nonebot_plugin_localstore import get_plugin_data
 
 # 默认系统提示
 DEFAULT_AI_SYSTEM_PROMPT = """
@@ -45,11 +50,16 @@ def parse_bool(value: Any) -> bool:
         return False
 
 
+# 获取插件数据目录
+plugin_data = get_plugin_data("nonebot-plugin-tieba-monitor")
+data_dir = plugin_data.data_dir
+
+
+
 class Config(BaseModel):
     """贴吧监控插件配置"""
     # 贴吧监控设置
     tieba_check_interval_seconds: int = Field(default=300, description="检查新帖子的时间间隔（秒）")
-    tieba_output_directory: str = Field(default="data/tieba_data", description="保存帖子数据的文件夹路径")
     tieba_threads_to_retrieve: int = Field(default=5, description="每次检查时获取的最新帖子数量")
     
     # 每个贴吧单独的通知群组配置 - 现在仅使用此配置决定要监控哪些贴吧和要发送到哪些群组
@@ -73,24 +83,18 @@ class Config(BaseModel):
         description="AI分析使用的系统提示词"
     )
     
-    @validator('tieba_ai_enabled', pre=True)
-    def parse_enabled(cls, v, values, **kwargs):
+    @field_validator('tieba_ai_enabled', mode='before')
+    def parse_enabled(cls, v):
         """处理各种格式的布尔值"""
         return parse_bool(v)
     
-    class Config:
-        # 允许额外字段
-        extra = "ignore"
-        # 允许从环境变量读取
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = {
+        "extra": "ignore",
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": False
+    }
 
-
-# 确保环境变量正确设置
-env_enabled = os.environ.get('TIEBA_AI_ENABLED', '')
-if env_enabled:
-    os.environ['TIEBA_AI_ENABLED'] = str(parse_bool(env_enabled)).lower()
 
 # 获取插件配置
 plugin_config = get_plugin_config(Config)
@@ -110,7 +114,7 @@ def get_tieba_config():
     return {
         "forums": list(plugin_config.tieba_forum_groups.keys()),
         "check_interval_seconds": plugin_config.tieba_check_interval_seconds,
-        "output_directory": plugin_config.tieba_output_directory,
+        "output_directory": str(data_dir),
         "threads_to_retrieve": plugin_config.tieba_threads_to_retrieve,
         "forum_groups": plugin_config.tieba_forum_groups
     }

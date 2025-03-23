@@ -2,33 +2,31 @@ import json
 from openai import AsyncOpenAI
 from nonebot.log import logger
 
-from .config import get_ai_config
+from .config import plugin_config
 
 
 async def filter_with_ai(text, thread_info=None):
     """使用OpenAI库筛选帖子内容"""
-    # 获取AI配置
-    ai_config = get_ai_config()
     
     # 限制文本长度（如果配置了max_chars并且大于0）
-    max_chars = ai_config.get("max_chars", 0)
+    max_chars = plugin_config.tieba_ai_max_chars
     if max_chars > 0 and len(text) > max_chars:
         text = text[:max_chars]
     
     # 初始化OpenAI客户端
     client = AsyncOpenAI(
-        api_key=ai_config["api_key"],
-        base_url=ai_config["api_endpoint"]
+        api_key=plugin_config.tieba_ai_apikey,
+        base_url=plugin_config.tieba_ai_endpoint
     )
     
     try:
         messages = [
-            {"role": "system", "content": ai_config["system_prompt"]},
+            {"role": "system", "content": plugin_config.tieba_ai_system_prompt},
             {"role": "user", "content": text}
         ]
         
         response = await client.chat.completions.create(
-            model=ai_config["model"],
+            model=plugin_config.tieba_ai_model,
             messages=messages
         )
         
@@ -37,7 +35,7 @@ async def filter_with_ai(text, thread_info=None):
         # 清理 AI 响应，移除Markdown代码块标记
         if ai_response.startswith("```"):
             first_newline = ai_response.find("\n")
-            if first_newline != -1:
+            if (first_newline != -1):
                 ai_response = ai_response[first_newline + 1:]
             
             if ai_response.endswith("```"):
@@ -51,7 +49,7 @@ async def filter_with_ai(text, thread_info=None):
             should_notify = True
             filtered_reason = []
             
-            filter_keys = ai_config.get("filter_keys", [])
+            filter_keys = plugin_config.tieba_ai_filter_keys
             for key in filter_keys:
                 if key in ai_analysis and ai_analysis[key] is True:
                     should_notify = False

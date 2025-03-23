@@ -2,46 +2,40 @@ import asyncio
 import json
 import os
 import datetime
+from pathlib import Path
 
 import aiotieba
 from nonebot.adapters.onebot.v11 import Bot
 from nonebot.log import logger
 
-from .config import get_tieba_config, get_ai_config, get_notify_groups_for_forum
+from .config import plugin_config, data_dir
 from .filter import filter_with_ai
 from .notification import send_notifications_to_groups
 
 
 async def check_and_save_new_threads_and_notify(tieba_name, bot=None):
     """检查并保存指定贴吧的新帖子，并发送通知"""
-    # 获取配置
-    tieba_config = get_tieba_config()
-    ai_config = get_ai_config()
-    
     # 提取配置项
-    output_dir = tieba_config["output_directory"]
-    threads_to_retrieve = tieba_config["threads_to_retrieve"]
-    ai_enabled = ai_config["enabled"]
+    threads_to_retrieve = plugin_config.tieba_threads_to_retrieve
+    ai_enabled = plugin_config.tieba_ai_enabled
     
     logger.info(f"检查贴吧[{tieba_name}]")
     
     # 获取通知群组，如无则跳过
-    notify_groups = get_notify_groups_for_forum(tieba_name)
+    notify_groups = plugin_config.tieba_forum_groups.get(tieba_name, [])
     if not notify_groups:
         return True
     
-    # 确保输出目录存在
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # 构建输出文件路径
-    output_path = os.path.join(output_dir, f"{tieba_name}.json")
+
+
+    output_path = data_dir / tieba_name / "threads.json"
     
     # 加载现有帖子数据
     existing_threads = []
     existing_tids = set()
     ai_analyzed_tids = set()
     
-    if os.path.exists(output_path):
+    if output_path.exists():
         try:
             with open(output_path, "r", encoding="utf-8") as f:
                 existing_threads = json.load(f)
@@ -106,6 +100,9 @@ async def check_and_save_new_threads_and_notify(tieba_name, bot=None):
         
         # 更新文件
         if updates_made:
+            # 确保父目录存在
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(existing_threads, f, ensure_ascii=False, indent=4)
                 
@@ -132,13 +129,12 @@ async def check_and_save_new_threads_and_notify(tieba_name, bot=None):
 
 # 测试入口
 if __name__ == "__main__":
-    tieba_config = get_tieba_config()
-    forums = tieba_config["forums"]
+    forums = list(plugin_config.tieba_forum_groups.keys())
     
     if forums:
         print(f"将检查以下贴吧: {', '.join(forums)}")
         for tieba_name in forums:
             asyncio.run(check_and_save_new_threads_and_notify(tieba_name))
     else:
-        print("没有配置任何贴吧监控，请检查环境变量")
+        print("没有配置任何贴吧监控，请检查配置")
 
