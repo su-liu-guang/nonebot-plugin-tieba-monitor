@@ -3,12 +3,11 @@ from nonebot import get_plugin_config, require
 from nonebot.log import logger
 from nonebot.compat import field_validator
 from pydantic import BaseModel, Field
-from nonebot_plugin_localstore import get_plugin_data
 from pathlib import Path
 
 # 声明依赖
 require("nonebot_plugin_localstore")
-from nonebot_plugin_localstore import get_plugin_data
+from nonebot_plugin_localstore import get_plugin_data_dir
 
 # 默认系统提示
 DEFAULT_AI_SYSTEM_PROMPT = """
@@ -51,8 +50,7 @@ def parse_bool(value: Any) -> bool:
 
 
 # 获取插件数据目录
-plugin_data = get_plugin_data("nonebot-plugin-tieba-monitor")
-data_dir = plugin_data.data_dir
+data_dir = get_plugin_data_dir()
 
 
 
@@ -62,13 +60,11 @@ class Config(BaseModel):
     tieba_check_interval_seconds: int = Field(default=300, description="检查新帖子的时间间隔（秒）")
     tieba_threads_to_retrieve: int = Field(default=5, description="每次检查时获取的最新帖子数量")
     
-    # 每个贴吧单独的通知群组配置 - 现在仅使用此配置决定要监控哪些贴吧和要发送到哪些群组
     tieba_forum_groups: Dict[str, List[int]] = Field(
         default={},
         description="每个贴吧特定的通知群组，格式为：{'贴吧名称': [群号1, 群号2]}"
     )
     
-    # AI筛选配置 - 直接放在Config类中，避免嵌套
     tieba_ai_enabled: bool = Field(default=False, description="是否启用AI分析")
     tieba_ai_apikey: str = Field(default="", description="AI API密钥")
     tieba_ai_endpoint: str = Field(default="https://api.openai.com/v1", description="AI API端点")

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nonebot-plugin-tieba-monitor"
-version = "0.1.5"
+version = "0.1.6"
 description = "NoneBot2 plugin for monitoring Tieba forums"
 readme = "readme.md"
 authors = [
