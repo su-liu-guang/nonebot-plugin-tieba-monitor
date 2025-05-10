@@ -1,8 +1,7 @@
 from typing import Dict, List, Any
 from nonebot import get_plugin_config, require
 from nonebot.log import logger
-from nonebot.compat import field_validator
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field,field_validator
 from pathlib import Path
 
 # 声明依赖
